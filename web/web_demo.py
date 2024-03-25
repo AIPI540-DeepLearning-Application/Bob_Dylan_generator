@@ -11,7 +11,9 @@ from langchain import PromptTemplate,  LLMChain
 # from langchain_core.prompts import ChatPromptTemplate
 # from langchain.chains import LLMChain
 # from langchain_core.prompts import PromptTemplate
+import warnings
 
+warnings.filterwarnings("ignore")
 
 st.set_page_config(page_title="Bob Dylan style lyrics")
 st.title("Bob Dylan style lyrics🤖️")
@@ -27,7 +29,7 @@ def init_model():
         tokenizer = AutoTokenizer.from_pretrained(model_id,
                                         token = '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')
 
-        model = AutoModelForCausalLM.from_pretrained(path)        
+        model = AutoModelForCausalLM.from_pretrained(path, low_cpu_mem_usage=True)        
     else:
         print("llama-7b-bobdylan-local does not exist")
         
@@ -47,22 +49,7 @@ def init_model():
             "./llama-7b-bobdylan-local",
             low_cpu_mem_usage=True
         )
-    # build pipeline
-    pipe = pipeline("text-generation",
-            model=model,
-            tokenizer= tokenizer,
-            torch_dtype = torch.bfloat16,
-            # max_new_tokens=512,
-            max_length = 1000,
-            do_sample=True,
-            temperature=0.1,
-            top_k=10,
-            eos_token_id=tokenizer.eos_token_id,
-            pad_token_id=tokenizer.pad_token_id
-            )
-
-    llm = HuggingFacePipeline(pipeline = pipe)
-    return llm
+    return model, tokenizer
 
 
 # clear history messages
@@ -84,30 +71,52 @@ def init_chat_history():
 
     return st.session_state.messages
 
+def generate_resp(user_input, model, tokenizer):
+    # build pipeline
+    system_prompt = """you are a Bob Dylan poetry generator bot. Please generate a poem in Bob Dylan's style. The topic is: """
+    pipe = pipeline("text-generation", model=model, tokenizer=tokenizer)
+    
+    sample_input =  [
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_input}
+            ]
+
+    prompt = pipe.tokenizer.apply_chat_template(
+        sample_input,
+        tokenize=False,
+        add_generation_prompt=True
+        )
+
+    outputs = pipe(prompt,
+                max_new_tokens=256,
+                do_sample=False,
+                temperature=0.1,
+                top_k=50,
+                top_p=0.1,
+                eos_token_id=pipe.tokenizer.eos_token_id,
+                pad_token_id=pipe.tokenizer.pad_token_id
+                )
+    return outputs[0]['generated_text'][len(prompt):].strip()
 
 
 def main():
-    llm = init_model()
+    llm, tokenizer = init_model()
     messages = init_chat_history()
-    template = """
-              You are a Bob Dylan poetry generator bot. Please generate a poem in Bob Dylan's style.
-              Return your response in the format of a poetry. The poetry is: {text}
-           """
+    # template = """
+    #           You are a Bob Dylan poetry generator bot. Please generate a poem in Bob Dylan's style.
+    #           Return your response in the format of a poetry. The poetry is: {text}
+    #        """
 
-    prompt = PromptTemplate(template=template, input_variables=["text"])
-    llm_chain = LLMChain(prompt=prompt, llm=llm)
+    # prompt = PromptTemplate(template=template, input_variables=["text"])
+    # llm_chain = LLMChain(prompt=prompt, llm=llm)
 
     if user_input := st.chat_input("Shift + Enter 换行, Enter 发送"):
         with st.chat_message("user", avatar='🧑'):
             st.markdown(user_input)
-        print(prompt)
-        # print("type:" + str(type(user_input)) + " " + user_input)
-        response = llm_chain.run(user_input)  
+        response = generate_resp(user_input, llm, tokenizer)  
         print(response)
         with st.chat_message("assistant", avatar="🤖"):
             placeholder = st.empty()
-            # for res in response:
-            #     placeholder.markdown(res)
             placeholder.markdown(response)
 
         st.button("清空对话", on_click=clear_chat_history)
@@ -115,44 +124,3 @@ def main():
     
 if __name__ == "__main__":
     main()
-    
-    # messages = init_chat_history()
-    # if prompt := st.chat_input("Shift + Enter change line, Enter send"):
-    #     with st.chat_message("user", avatar="🙋‍♂️"):
-    #         st.markdown(prompt)
-    #     messages.append({"role": "user", "content": prompt})
-    #     print(f"[user] {prompt}", flush=True)
-    #     with st.chat_message("assistant", avatar="🤖"):
-    #         placeholder = st.empty()
-    #         for response in model.chat(tokenizer, messages, stream=True):
-    #             placeholder.markdown(response)
-    #             if torch.backends.mps.is_available():
-    #                 torch.mps.empty_cache()
-    #     messages.append({"role": "assistant", "content": response})
-    #     print(json.dumps(messages, ensure_ascii=False), flush=True)
-
-        # st.button("clear chat", on_click=clear_chat_history)
-
-
-# def main():
-#     model, tokenizer = init_model()
-#     messages = init_chat_history()
-#     if prompt := st.chat_input("Shift + Enter change line, Enter send"):
-#         with st.chat_message("user", avatar="🙋‍♂️"):
-#             st.markdown(prompt)
-#         messages.append({"role": "user", "content": prompt})
-#         print(f"[user] {prompt}", flush=True)
-        
-#         with st.chat_message("assistant", avatar="🤖"):
-#             placeholder = st.empty()
-#             inputs = tokenizer(prompt, return_tensors="pt")
-#             generate_ids = model.generate(inputs.input_ids, max_length=1000)
-#             response = tokenizer.batch_decode(generate_ids, skip_special_tokens=True, clean_up_tokenization_spaces=False)[0]
-#             # for response in responses:
-#             placeholder.markdown(response)
-#             if torch.backends.mps.is_available():
-#                 torch.mps.empty_cache()
-#         messages.append({"role": "assistant", "content": response})
-#         print(json.dumps(messages, ensure_ascii=False), flush=True)
-
-#         st.button("clear chat", on_click=clear_chat_history)
