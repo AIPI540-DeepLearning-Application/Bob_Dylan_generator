@@ -26,68 +26,6 @@ After you fork and git clone the project, You should do the following steps:
 2. Activate virtual environment.<br/> Windows:`venv\Scripts\activate`, MacOS or Linux:`source venv/bin/activate`
 3. Install required packages `pip install -r requirements.txt`
 
-## Stages
-
-### Data Collection and Preprocessing
-
-1. Use a web scraper script based on `selenium` to collect artwork data from the NGA website (https://www.nga.gov/) and save it in an appropriate format, such as CSV. 
-<!-- <img src="./img/image.png" alt="Description of your image" width=“400” height="300"> -->
-![NGA Website](./img/image.png)
-
-Due to the reason that NGA uses `JavaScript` and `Ajax` to generate content, using the `http.request` library will only retrieve the initial static HTML content and won't capture dynamically generated data. `Selenium`, by simulating user interactions with a browser, can load and execute JavaScript to retrieve the complete page content. Therefore, we get these images one by one using selenium.
-
-<!-- <img src="./img/image2.png" alt="Description of your image" width=“200” height="200"> -->
-![Alt text](./img/image2.png)
-
-
-2. Preprocess the scraped data, including image processing and data cleaning. Ensure that the images in the dataset align with their corresponding year labels.
-
-    2.1.  Firstly, we got the csv file that includes header columns of title, years, link. 
-
-    <!-- <img src="./img/image3.png" alt="Description of your image" width=“200” height="100"> -->
-    ![Alt text](./img/image3.png)
-
-    2.2 Clean them and got the corresponding label(year) with local image files'name
-
-    2.3 Fetch the images and stored it into different label folders.
-    <!-- <img src="./img/folders.jpg" alt="Description of your image" width=“200” height="100"> -->
-    ![Alt text](./img/folders.jpg)
-
-### Data Augmentation
-Considering the unbalanced dataset, we adopt the **offline augmentation** method to enlarge the dataset. This method is suitable for smaller datasets. You will eventually increase the dataset by a certain multiple, which is equal to the number of conversions you make. For example, if I want to flip all my images, my dataset is equivalent to multiplying by 2.
-
-**Before:**
-
-<img src="./img/unbalanced_data.png" alt="Description of your image" width=“200” height="300">
-
-<!-- ![Alt text](./img/unbalanced_data.png) -->
-
-**After:**
-
-<img src="./img/balanced.png" alt="Description of your image" width=“200” height="200">
-
-
-### Methodology
-We did reszie, flip, random crop, rotation and colorJitter to the image to augment and get a larger dataset.
-1.  `train_transform_1`:
-
--   `transforms.Resize((image_height, image_width))`: This transformation resizes the input image to the specified height and width. It's often used to standardize the size of input images for a neural network.
-
-2.  `train_transform_2`:
-
--   `transforms.RandomHorizontalFlip()`: This randomly flips the image horizontally with a default 50% probability. It's useful for augmenting image datasets where the orientation isn't crucial.
-
-3.  `train_transform_3`:
-
--   `transforms.RandomRotation(10)`: This randomly rotates the image by a degree selected from a uniform distribution within the range [-10, 10] degrees. It adds variability in terms of rotation, making the model more robust to different orientations.
-
-4.  `train_transform_4`:
-
--   `transforms.RandomResizedCrop((image_height, image_width), scale=(0.8, 1.0), ratio=(0.9, 1.1))`: This applies a random resized crop to the image. It first randomly scales the image and then crops it to the specified size. The `scale` and `ratio` parameters control the variability in size and aspect ratio, respectively, of the crop.
-
-5.  `train_transform_5`:
-
--   `transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.1)`: This randomly changes the brightness, contrast, saturation, and hue of the image. The parameters control the degree of jittering for each attribute.
 
 
 ### Model Train
@@ -111,39 +49,29 @@ The n-gram model is a type of language model that predicts the next word by stat
 
 >see way well pressing yes believe man comes man peace information name give back town cold frosty morn creeps avoidin southside best soon lost race goes babylon girl france invited house fire peered darkness away kicked neighborhood bully fall well already gone spirit maker heartbreaker backbreaker leave know sun strong monkey log
 
+2. Deep Learning Approach Using Retrieval-Augmented Generation (RAG)
 
+RAG refers to the process that optimize the output of a large language model by feeding the model with an extra dataset that the original model hasn't seen before.
 
-2. Deep Learning model - VIT (Vision Transformer)
+1. **Pipeline**: 
+- Extract the data from csv file in the following format: "title: lyrics" 
+- Chunk the data using OpenAI Embedding model
+- Store the embedded vectors in vector databse (Pinecone)
+- Extract the vectors and perform a retrieval using semantic search (use cosine similarity as metric)
+- Insert relevant context into LLM model
+- Generate the response using RAG and without using RAG
 
-The Vision Transformer (ViT) model adopts an innovative approach to apply the Transformer architecture to image classification tasks. In ViT, the input image is first divided into fixed-size small patches, similar to dividing text into words or subwords in natural language processing. To retain positional information, ViT introduces positional embeddings, which are added to the representations of the image patches before being fed into a standard Transformer model.
+2. **Result & Conclusion**:
+The model's performance doesn't increase a lot using RAG when asking ChatGPT-4 which output sounds more likely to be in Bob Dylan's style. This probabaly because our base model has already beed trained on our provided dataset, thus RAG is not an ideal solution for our problem.
 
-The core of the Transformer model is the self-attention mechanism, which allows the model to consider information from all patches in the image while processing each patch, thereby capturing long-distance dependencies. The ability of this structure to directly utilize global information is one of the main advantages of ViT over traditional convolutional networks.
-
-![Alt text](./img/vit_architecture.jpg)
-
-**Fine-tuned VIT Model result**
-1. F1 score: 0.985
-2. Confusion Matrix:
-![Alt text](./img/ViT_cf.png)
 
 ### Model Evaluation
 
 We chose ChatGPT-4 as our third-party model to judge which output is closer to Bob Dylan's poetry style. We called the GPT-4 API and set an appropriate instruct prompt, using the generated poems from the two models to be compared as inputs. Then, we tallied the assessment results from GPT-4.
 
 #### Model Comparison
-| Model          | F1 score | Running Time |
-|---------------|----------------------------------| -------------------|
-| SVM     | 0.652   | 1:17:45 (20 epoch) |
-| VIT    | 0.985  | 4:01 |
-
-### Inference
-We built a web interface using `streamlit`. You can input an image of an artwork, and it will attempt to predict the year in which the artwork was created.
-
-![Alt text](./img/interface.png)
 
 
-The result of the prediction
-![Alt text](./img/show.png)
 
 
 
