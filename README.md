@@ -30,7 +30,7 @@ After you fork and git clone the project, You should do the following steps:
 
 ### Model Train
 
-#### Machine Learning model - N-gram Model
+#### 1. Machine Learning model - N-gram Model
 
 The n-gram model is a type of language model that predicts the next word by statistically analyzing the frequency of sequences of n words (i.e., n-grams) in the text. For example, a 2-gram (or bigram) model would consider sequences of every two words, while a 3-gram (or trigram) model would consider sequences of every three words. The steps is summarized below:
 
@@ -49,7 +49,7 @@ The n-gram model is a type of language model that predicts the next word by stat
 
 >see way well pressing yes believe man comes man peace information name give back town cold frosty morn creeps avoidin southside best soon lost race goes babylon girl france invited house fire peered darkness away kicked neighborhood bully fall well already gone spirit maker heartbreaker backbreaker leave know sun strong monkey log
 
-#### Deep Learning Approach Using Retrieval-Augmented Generation (RAG)
+#### 2. Deep Learning Approach Using Retrieval-Augmented Generation (RAG)
 
 RAG refers to the process that optimize the output of a large language model by feeding the model with an extra dataset that the original model hasn't seen before.
 
@@ -65,7 +65,7 @@ RAG refers to the process that optimize the output of a large language model by 
 The model's performance doesn't increase a lot using RAG when asking ChatGPT-4 which output sounds more likely to be in Bob Dylan's style. This probabaly because our base model has already beed trained on our provided dataset, thus RAG is not an ideal solution for our problem.
 
 
-#### Fine tune OpenAI gpt 3.5 turbo
+#### 3. Fine tune OpenAI gpt 3.5 turbo
 
 1. **Data loading**: Load the Bob Dylan Poems dataset from json files under ```data\```. Data is in the format of :
 ```
@@ -84,7 +84,7 @@ The model's performance doesn't increase a lot using RAG when asking ChatGPT-4 w
 
 
 
-#### Fine tune Meta Llama-2-7b-chat
+#### 4. Fine tune Meta Llama-2-7b-chat
 
 1. **Data loading**: Load the Bob Dylan Poems dataset from json files under ```data\```. Data is in the format of :
 ```
