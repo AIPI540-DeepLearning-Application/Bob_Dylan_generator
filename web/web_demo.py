@@ -51,11 +51,12 @@ def init_model():
     pipe = pipeline("text-generation",
             model=model,
             tokenizer= tokenizer,
-            max_new_tokens=256,
-            do_sample=False,
+            torch_dtype = torch.bfloat16,
+            # max_new_tokens=512,
+            max_length = 1000,
+            do_sample=True,
             temperature=0.1,
-            top_k=50,
-            top_p=0.1,
+            top_k=10,
             eos_token_id=tokenizer.eos_token_id,
             pad_token_id=tokenizer.pad_token_id
             )
@@ -90,25 +91,24 @@ def main():
     messages = init_chat_history()
     template = """
               You are a Bob Dylan poetry generator bot. Please generate a poem in Bob Dylan's style.
-              Return your response in the format of a poetry.
-              ```{text}```
-              The poetry is:
+              Return your response in the format of a poetry. The poetry is: {text}
            """
 
     prompt = PromptTemplate(template=template, input_variables=["text"])
     llm_chain = LLMChain(prompt=prompt, llm=llm)
 
     if user_input := st.chat_input("Shift + Enter 换行, Enter 发送"):
-        with st.chat_message("user", avatar='🧑‍💻'):
+        with st.chat_message("user", avatar='🧑'):
             st.markdown(user_input)
         print(prompt)
         # print("type:" + str(type(user_input)) + " " + user_input)
         response = llm_chain.run(user_input)  
-        print(len(response))
+        print(response)
         with st.chat_message("assistant", avatar="🤖"):
             placeholder = st.empty()
-            for res in response:
-                placeholder.markdown(res)
+            # for res in response:
+            #     placeholder.markdown(res)
+            placeholder.markdown(response)
 
         st.button("清空对话", on_click=clear_chat_history)
     
