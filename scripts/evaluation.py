@@ -7,22 +7,25 @@ class Evaluation:
         self.client = OpenAI()
 
     def evaluate(self):
-        response = self.client.chat.completions.create(
-        model = self.model_name,
-        # response_format={ "type": "json_object" },
-        messages=[
-            {"role": "system", "content": "You are a helpful poetry critic."},
-            {"role": "user", "content": "Which of the following 5 poems is most close to Bob Dylan's style? Give me the index, like the first/second/third..."
-            +list(self.poems_fine_tuned_gpt35[0])[0]+list(self.poems_fine_tuned_gpt35[0].values())[0]
-            +list(self.poems_fine_tuned_llama2[0])[0]+list(self.poems_fine_tuned_llama2[0].values())[0]
-            +list(self.poems_no_fine_tuned_gpt35[0])[0]+list(self.poems_no_fine_tuned_gpt35[0].values())[0]
-            +list(self.poems_no_fine_tuned_llama2[0])[0]+list(self.poems_no_fine_tuned_llama2[0].values())[0]
-            +list(self.poems_rag_gpt35[0])[0]+list(self.poems_rag_gpt35[0].values())[0]
-            }
-        ]
-        )
-        print(response.choices[0].message.content)
-        return response.choices[0].message.content
+        results = []
+        for i in range(10):
+            response = self.client.chat.completions.create(
+            model = self.model_name,
+            # response_format={ "type": "json_object" },
+            messages=[
+                {"role": "system", "content": "You are a helpful poetry critic."},
+                {"role": "user", "content": "Which of the following 5 poems is most close to Bob Dylan's style? Give me the index, like the first/second/third..."
+                +list(self.poems_fine_tuned_gpt35[0])[0]+list(self.poems_fine_tuned_gpt35[0].values())[0]
+                +list(self.poems_fine_tuned_llama2[0])[0]+list(self.poems_fine_tuned_llama2[0].values())[0]
+                +list(self.poems_no_fine_tuned_gpt35[0])[0]+list(self.poems_no_fine_tuned_gpt35[0].values())[0]
+                +list(self.poems_no_fine_tuned_llama2[0])[0]+list(self.poems_no_fine_tuned_llama2[0].values())[0]
+                +list(self.poems_rag_gpt35[0])[0]+list(self.poems_rag_gpt35[0].values())[0]
+                }
+            ]
+            )
+            print(response.choices[0].message.content)
+            results.append(response.choices[0].message.content)
+        return results
 
 
     def load_test_data(self):
