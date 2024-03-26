@@ -72,6 +72,15 @@ We chose ChatGPT-4 as our third-party model to judge which output is closer to B
 #### Model Comparison
 
 
+## Inference
+### Hardware
+- AWS g5.2xlarge
+- Nvidia A100 GPU 
+
+### Web interface
+We built the project with streamlit, langchain and Huggingface libraries. Also, we deploy our model on AWS to support the user requests.
+![alt text](./pictures/web1.png)
+![alt text](./pictures/web2.png)
 
 
 
