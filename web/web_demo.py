@@ -12,6 +12,9 @@ from langchain import PromptTemplate,  LLMChain
 # from langchain.chains import LLMChain
 # from langchain_core.prompts import PromptTemplate
 import warnings
+import transformers
+import sys
+
 
 warnings.filterwarnings("ignore")
 
@@ -20,36 +23,61 @@ st.title("Bob Dylan style lyrics🤖️")
 
 
 @st.cache_resource
-def init_model():
-    path = "/home/ec2-user/Bob_Dylan_generator/web/llama-7b-bobdylan-local"
+def init_model(model_hf, simple_title):
+    tokenizer = AutoTokenizer.from_pretrained(model_hf)
+    pipeline = transformers.pipeline(
+        "text-generation",
+        model=model_hf,
+        torch_dtype=torch.float16,
+        device_map="auto",
+    )
 
-    if os.path.exists(path):
-        print("llama-7b-bobdylan-local exist")
-        model_id = "Pot-l/llama-7b-bobdylan"
-        tokenizer = AutoTokenizer.from_pretrained(model_id,
-                                        token = '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')
+    system_prompt = """You are a Bob Dylan poetry generator. Please generate a poem in Bob Dylan's style. Please only give me the poem content and do not give other or incomplete information and blanks. Do not provide any '\n' in the end. The topic is: """
+    sequences = pipeline(
+        system_prompt + simple_title,
+        do_sample=True,
+        top_k=10,
+        num_return_sequences=1,
+        eos_token_id=tokenizer.eos_token_id,
+        max_length=512,
+    )
+    response_res = sequences[0]['generated_text'][len(system_prompt):].strip()
+    print(f"Result:\n{response_res}\n")
+    torch.cuda.empty_cache()
+    return response_res
 
-        model = AutoModelForCausalLM.from_pretrained(path, low_cpu_mem_usage=True)        
-    else:
-        print("llama-7b-bobdylan-local does not exist")
+
+# @st.cache_resource
+# def init_model():
+#     path = "/home/ec2-user/Bob_Dylan_generator/web/llama-7b-bobdylan-local"
+
+#     if os.path.exists(path):
+#         print("llama-7b-bobdylan-local exist")
+#         model_id = "Pot-l/llama-7b-bobdylan"
+#         tokenizer = AutoTokenizer.from_pretrained(model_id,
+#                                         token = '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')
+
+#         model = AutoModelForCausalLM.from_pretrained(path, low_cpu_mem_usage=True)        
+#     else:
+#         print("llama-7b-bobdylan-local does not exist")
         
-        # Load PEFT model on CPU
-        model_id = "Pot-l/llama-7b-bobdylan"
-        tokenizer = AutoTokenizer.from_pretrained(model_id, token = "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")
-        model = AutoPeftModelForCausalLM.from_pretrained(
-            model_id,
-            torch_dtype=torch.float16,
-            low_cpu_mem_usage=True,
-            token = "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"
-        )
-        # Merge LoRA and base model and save
-        merged_model = model.merge_and_unload()
-        merged_model.save_pretrained("llama-7b-bobdylan-local",safe_serialization=True, max_shard_size="2GB")
-        model = AutoModelForCausalLM.from_pretrained(
-            "./llama-7b-bobdylan-local",
-            low_cpu_mem_usage=True
-        )
-    return model, tokenizer
+#         # Load PEFT model on CPU
+#         model_id = "Pot-l/llama-7b-bobdylan"
+#         tokenizer = AutoTokenizer.from_pretrained(model_id, token = "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")
+#         model = AutoPeftModelForCausalLM.from_pretrained(
+#             model_id,
+#             torch_dtype=torch.float16,
+#             low_cpu_mem_usage=True,
+#             token = "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"
+#         )
+#         # Merge LoRA and base model and save
+#         merged_model = model.merge_and_unload()
+#         merged_model.save_pretrained("llama-7b-bobdylan-local",safe_serialization=True, max_shard_size="2GB")
+#         model = AutoModelForCausalLM.from_pretrained(
+#             "./llama-7b-bobdylan-local",
+#             low_cpu_mem_usage=True
+#         )
+#     return model, tokenizer
 
 
 # clear history messages
@@ -100,13 +128,14 @@ def generate_resp(user_input, model, tokenizer):
 
 
 def main():
-    llm, tokenizer = init_model()
+    # llm, tokenizer = init_model()
     messages = init_chat_history()
 
     if user_input := st.chat_input("Shift + Enter for switching a new line, Enter for sending"):
         with st.chat_message("user", avatar='🧑'):
             st.markdown(user_input)
-        response = generate_resp(user_input, llm, tokenizer)  
+        # response = generate_resp(user_input, llm, tokenizer)  
+        response = init_model(model_hf='meta-llama/Llama-2-7b-chat-hf', simple_title=user_input)
         print(response)
         with st.chat_message("assistant", avatar="🤖"):
             placeholder = st.empty()
