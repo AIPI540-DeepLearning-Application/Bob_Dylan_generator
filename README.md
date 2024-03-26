@@ -1,7 +1,7 @@
 # Bob_Dylan_generator
 
 ## Purpose
-Our project aims to collect the poetry data of Bob Dylan from kaggle(https://www.kaggle.com/code/cloudy17/bob-dylan-songs-1961-2020/input) and fine-tune multiple LLMs models to enable them to generate poetry in a style similar to Bob Dylan's. In addition to this, we have also implemented RAG (Retrieval-Augmented Generation) and evaluated and compared the outputs of these models. What's more, we provide a website user interface for testing.
+Our project aims to collect the poem data of Bob Dylan from kaggle(https://www.kaggle.com/code/cloudy17/bob-dylan-songs-1961-2020/input) and fine-tune multiple LLMs models to enable them to generate poems in a style similar to Bob Dylan's. In addition to this, we have also implemented RAG (Retrieval-Augmented Generation) and evaluated and compared the outputs of these models. What's more, we provide a website user interface for testing.
 
 
 ## Features
@@ -30,7 +30,7 @@ After you fork and git clone the project, You should do the following steps:
 
 ### Model Train
 
-1. Machine Learning model - N-gram Model
+#### 1. Machine Learning model - N-gram Model
 
 The n-gram model is a type of language model that predicts the next word by statistically analyzing the frequency of sequences of n words (i.e., n-grams) in the text. For example, a 2-gram (or bigram) model would consider sequences of every two words, while a 3-gram (or trigram) model would consider sequences of every three words. The steps is summarized below:
 
@@ -49,7 +49,7 @@ The n-gram model is a type of language model that predicts the next word by stat
 
 >see way well pressing yes believe man comes man peace information name give back town cold frosty morn creeps avoidin southside best soon lost race goes babylon girl france invited house fire peered darkness away kicked neighborhood bully fall well already gone spirit maker heartbreaker backbreaker leave know sun strong monkey log
 
-2. Deep Learning Approach Using Retrieval-Augmented Generation (RAG)
+#### 2. Deep Learning Approach Using Retrieval-Augmented Generation (RAG)
 
 RAG refers to the process that optimize the output of a large language model by feeding the model with an extra dataset that the original model hasn't seen before.
 
@@ -63,6 +63,75 @@ RAG refers to the process that optimize the output of a large language model by 
 
 2. **Result & Conclusion**:
 The model's performance doesn't increase a lot using RAG when asking ChatGPT-4 which output sounds more likely to be in Bob Dylan's style. This probabaly because our base model has already beed trained on our provided dataset, thus RAG is not an ideal solution for our problem.
+
+
+#### 3. Fine tune OpenAI gpt 3.5 turbo
+
+1. **Data loading**: Load the Bob Dylan Poems dataset from json files under ```data\```. Data is in the format of :
+```
+{
+    "messages": [
+        {"role": "system", "content": system_prompt},
+        {"role": "user", "content": user_prompt},
+        {"role": "assistant", "content": lyrics}
+        ]
+}
+```
+
+2. **Fine tuning approach**: We fine tuned the gpt 3.5 model through the official OpenAI fine-tuning tutorial by calling ```client.fine_tuning.jobs.create``` method.
+
+3. **Result**: Responses were then generated on ten poems topics, results are saved in ```output\poems_finetuned_gpt35.json```
+
+
+
+#### 4. Fine tune Meta Llama-2-7b-chat
+
+1. **Data loading**: Load the Bob Dylan Poems dataset from json files under ```data\```. Data is in the format of :
+```
+{
+    "messages": [
+        {"role": "system", "content": system_prompt},
+        {"role": "user", "content": user_prompt},
+        {"role": "assistant", "content": lyrics}
+        ]
+}
+```
+
+
+2. **Fine tuning approach**: We fine tuned the [meta/llama-2-7b-chat](https://huggingface.co/meta-llama/Llama-2-7b-chat-hf) model using the Hugging Face Transformers library. We use Q-LoRa to accelerate the fine-tuning process. By using this strategy, we are able to fine tune some layers of the model and output a model adapter. The adapter is then merged with the basemodel (llama2) for inference usage. Hugging face's ```SFTTrainer``` integrate well with Q-LoRa, which makes the fine-tuning process easier. Here are the hyperparameters we used for fine-tuning:
+```
+    args = TrainingArguments(
+        output_dir="llama-7b-bobdylan",         # saving dir name, on hugging face hub
+        num_train_epochs=3,                     # num of epochs
+        per_device_train_batch_size=2,          
+        gradient_accumulation_steps=2,          
+        gradient_checkpointing=True,           
+        optim="adamw_torch_fused",              
+        logging_steps=10,                       # log every 10 steps
+        save_strategy="epoch",                  
+        learning_rate=2e-4,                     
+        bf16=False,                              
+        tf32=False,                              
+        max_grad_norm=0.3,                      
+        warmup_ratio=0.03,                      
+        lr_scheduler_type="constant",           
+        push_to_hub=True,                       # push the model to the hugging face hub
+        report_to="tensorboard",                
+    )
+```
+
+```
+    peft_config = LoraConfig(
+        lora_alpha=128,
+        lora_dropout=0.05,
+        r=256,
+        bias="none",
+        target_modules="all-linear",
+        task_type="CAUSAL_LM",
+    )
+```
+
+3. **Results**: Responses were then generated on ten poems topics, results are saved in ```poems_finetuned_llama2.json```
 
 
 ### Model Evaluation
