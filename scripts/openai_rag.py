@@ -245,7 +245,22 @@ if __name__ == "__main__":
         "Embers of Yesterday",
         "Paths Untrodden",
         "Midnight's Serenade",
-    ]
+        "Shadows in the Moonlight",
+        "Echoes of Forgotten Dreams",
+        "Tides of Change",
+        "Beneath the Velvet Sky",
+        "Dancing with the Stars",
+        "In the Heart of the Storm",
+        "Serenade of the Sea",
+        "Flames of Desire",
+        "Through the Eyes of Time",
+        "Whispers Among the Ruins",
+        "Glimpses of Eternity",
+        "Rhythms of the Rain",
+        "Veils of Mist",
+        "Embers of a Fading Sun",
+        "Bridges Over Silent Waters"
+        ]
     
     query_vectors = get_query_vectors(poems_title)
     
