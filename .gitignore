@@ -1,3 +1,4 @@
 .env
 /venv
 web/llama-7b-bobdylan-local
+notebooks/test.ipynb
