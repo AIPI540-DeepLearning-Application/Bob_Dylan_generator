@@ -136,12 +136,13 @@ The model's performance doesn't increase a lot using RAG when asking ChatGPT-4 w
 
 ### Model Evaluation
 
-We chose ChatGPT-4 as our third-party model to judge which output is closer to Bob Dylan's poetry style. We called the GPT-4 API and set an appropriate instruct prompt, using the generated poems from the two models to be compared as inputs. Then, we tallied the assessment results from GPT-4.
+We chose ChatGPT-4 as our third-party model to judge which output is closer to Bob Dylan's poetry style for 50 sleceted topics. We called the GPT-4 API and set an appropriate instruct prompt, using the generated poems from the two models to be compared as inputs. Then, we tallied the assessment results from GPT-4.
 
 #### Model Comparison
+Here's the result after we compare the five model's output using GPT-4
 
+## Inference<img width="673" alt="Screenshot 2024-03-26 at 12 58 20 PM" src="https://github.com/ShuaimingJing/Bob_Dylan_generator/assets/140912320/b0a2b92e-37e1-4426-8f73-2c4c53cb7139">
 
-## Inference
 ### Hardware
 - AWS g5.2xlarge
 - Nvidia A100 GPU 
