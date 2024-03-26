@@ -102,15 +102,8 @@ def generate_resp(user_input, model, tokenizer):
 def main():
     llm, tokenizer = init_model()
     messages = init_chat_history()
-    # template = """
-    #           You are a Bob Dylan poetry generator bot. Please generate a poem in Bob Dylan's style.
-    #           Return your response in the format of a poetry. The poetry is: {text}
-    #        """
 
-    # prompt = PromptTemplate(template=template, input_variables=["text"])
-    # llm_chain = LLMChain(prompt=prompt, llm=llm)
-
-    if user_input := st.chat_input("Shift + Enter 换行, Enter 发送"):
+    if user_input := st.chat_input("Shift + Enter for switching a new line, Enter for sending"):
         with st.chat_message("user", avatar='🧑'):
             st.markdown(user_input)
         response = generate_resp(user_input, llm, tokenizer)  
@@ -119,7 +112,7 @@ def main():
             placeholder = st.empty()
             placeholder.markdown(response)
 
-        st.button("清空对话", on_click=clear_chat_history)
+        st.button("Clear Chat", on_click=clear_chat_history)
     
     
 if __name__ == "__main__":
