@@ -145,10 +145,10 @@ Here's the result after we compare the five model's output using GPT-4
 
 ### Hardware
 - AWS g5.2xlarge
-- Nvidia A100 GPU 
+- Nvidia A10G GPU 
 
 ### Web interface
-We built the project with streamlit, langchain and Huggingface libraries. Also, we deploy our model on AWS to support the user requests.
+We built the project with streamlit, langchain and Huggingface libraries. Also, we deploy our model on AWS to support the user requests. You can run the command `streamlit run main.py` to start the project. (If it shows the error message like: `bash: streamlit: command not found`, please run by `python -m streamlit run main.py`)
 ![alt text](./pictures/web1.png)
 ![alt text](./pictures/web2.png)
 
